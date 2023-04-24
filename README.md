@@ -1,4 +1,4 @@
-# uber_rides_analysis  
+# Uber_rides_analysis  
 # Introduction  
 ![png-clipart-easy-taxi-e-hailing-transport-uber-taxi-text-logo](https://user-images.githubusercontent.com/118494139/234085381-e60f5a53-290d-47c7-9b91-b98bc3968318.png)
 
