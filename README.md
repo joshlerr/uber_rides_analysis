@@ -12,7 +12,7 @@ schema_table$Hour<-format(as.POSIXct(schema_table$Time, format = "%H:%M"), forma
 schema_table$month<-format(as.Date(schema_table$Date, "%m/%d/%Y"),"%b")
 ```  
 # filtering and creating pivot charts  
-After i divided the dataset into the format i wanted, it was easy for me to filter and precicely choose with what i wanted to filture out. the first thing i wanted to see was a table and chart of uber rides in each Hour, or simply speaking, the number (count) of uber orders at each hour. 
+1. After i divided the dataset into the format i wanted, it was easy for me to filter and precicely choose with what i wanted to filture out. the first thing i wanted to see was a table and chart of uber rides in each Hour, or simply speaking, the number (count) of uber orders at each hour. 
 ```r
 hourly<-schema_table%>%
   group_by(Hour)%>%
@@ -24,6 +24,22 @@ ggplot(hourly, aes(x = Hour, y = trip_count)) +
        x = "Hour of uber order",
        y = "Trip Count")
 ```  
+2. After creating a chart that represents uber rides frequency(count) by Hour, i also wanted to see which days had the most rides within the the six months. to do this, i had to create a new column in my table which had Days. so i used the code below to split my month and use my Days to create another chart.  
+```r
+for_month<-schema_table
+for_month$Date <- mdy(for_month$Date)
+for_month$Day <- weekdays(for_month$Date)
+daily<-for_month%>%
+  group_by(Day)%>%
+  summarise(trips = n())
+
+ggplot(daily, aes(x = Day, y = trips)) +
+  geom_bar(stat = "identity", color = "black", fill = "dark grey") +
+  labs(title = "Trips on each day",
+       x = "day of uber order",
+       y = "Trip Count")
+```
+
 
 
 
