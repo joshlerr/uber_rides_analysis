@@ -58,7 +58,7 @@ for_month %>%
 # ShinyApp for bar charts and their descriptions
 ```r
 ui <- fluidPage(
-  titlePanel("Uber Rides Analysis shown bar charts"),
+  titlePanel("Uber Rides Analysis shown by bar charts"),
   #Display the first chart
   plotOutput("chart1"),
   textOutput("explanation1"),
