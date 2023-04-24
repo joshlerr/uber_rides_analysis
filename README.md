@@ -39,6 +39,19 @@ ggplot(daily, aes(x = Day, y = trips)) +
        x = "day of uber order",
        y = "Trip Count")
 ```
+3. Among the other questions asked by the professor was a chart that explains the number of uber trips by day and month. and to do this, i had to group the dataset by Day and by Month,summarise the trips, and fill it with different color.  
+```r
+for_month %>%
+  group_by(Day,month) %>%
+  summarise(trips = n()) %>%
+  arrange(match(Day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
+          match(month, month.name)) %>%
+  ggplot(aes(x = month, y = trips, fill = Day)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
+  theme_bw()
+  ```
+ 
 
 
 
