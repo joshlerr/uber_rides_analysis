@@ -54,7 +54,9 @@ for_month %>%
   theme_bw()
   ```
 4. the table below represents a dataframe that includes uber rides by hour and month. it also shows rides taken each day, their month, hour, and year. next to that, we start doing the shinyApp to represent all the charts with their explanations  
-![Screenshot 2023-04-24 143134](https://user-images.githubusercontent.com/118494139/234100152-df8b3618-2a7d-408c-b0f5-a0737f43a06e.png)
+![Screenshot 2023-04-24 143134](https://user-images.githubusercontent.com/118494139/234100152-df8b3618-2a7d-408c-b0f5-a0737f43a06e.png)  
+# ShinyApp for bar charts and their descriptions
+
 
 
 
