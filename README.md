@@ -130,7 +130,7 @@ server <- function(input, output, session) {
 }
 shinyApp(ui = ui, server = server)
 ```
-![Screenshot 2023-04-25 163052](https://user-images.githubusercontent.com/118494139/234411539-76685ac2-754e-49f5-b9b4-a41f2fd9b735.png)
+![Screenshot 2023-04-25 164812](https://user-images.githubusercontent.com/118494139/234411956-324f23c5-d5d8-4251-ba7b-0d33829b480e.png)
 
 # Prediction Ride model using decision Tree  
 for decision making prediction models, i used libnraries that i have never used before. these two libraries are:  
