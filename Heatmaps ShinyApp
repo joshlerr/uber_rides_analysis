@@ -1,4 +1,4 @@
-```r
+```r  
 ui <- fluidPage(
   
   # Add title to the app
