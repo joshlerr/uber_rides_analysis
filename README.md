@@ -53,136 +53,82 @@ for_month %>%
   labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
   theme_bw()
   ```
-4. the table below represents a dataframe that includes uber rides by hour and month. it also shows rides taken each day, their month, hour, and year. next to that, we start doing the shinyApp to represent all the charts with their explanations  
+4. the table below represents a dataframe that includes uber rides by hour and month. it also shows rides taken each day, their month, hour, and year. next to that, I did the shinyApps that represent the barcharts and a shinyApp that shows the heatmaps which is set in different folders before the readme. but on the read me,lets start looking at the leaflet to show the map and locations points.  
 ![Screenshot 2023-04-24 143134](https://user-images.githubusercontent.com/118494139/234100152-df8b3618-2a7d-408c-b0f5-a0737f43a06e.png)  
-# ShinyApp for bar charts and their descriptions
+# Geospatial leaflet map  
 ```r
+leaf_let<-date_schema
+leaf_let$datetime <- as.POSIXct(paste(leaf_let$Date, leaf_let$Time), format = "%m/%d/%Y %H:%M:%S")
+
+# Define UI
 ui <- fluidPage(
-  titlePanel("Uber Rides Analysis shown by bar charts"),
-  #Display the first chart
-  plotOutput("chart1"),
-  textOutput("explanation1"),
   
-  #Display the second chart
-  plotOutput("chart2"),
-  textOutput("explanation2"),
+  # Use shinyjs to reset map
+  useShinyjs(),
+  extendShinyjs(text = "shinyjs.resetMap = function() { map.setView([40.7128, -74.0060], 13); }", functions = list(
+    resetMap = JS("function() { map.setView([40.7128, -74.0060], 13); }")
+  )),
   
-  # Display the third chart
-  plotOutput("chart3"),
-  textOutput("explanation3"),
   
-  # Display the fourth chart
-  plotOutput("chart4"),
-  textOutput("explanation4"),
+  # Search input and search button
+  sidebarPanel(
+    textInput("search", "Search Address:"),
+    actionButton("go", "Go")
+  ),
   
-  #Display the fifth chart
-  plotOutput("chart5"),
+  # Reset map button and measure button
+  tags$div(
+    id = "buttons",
+    actionButton("reset", "Reset Map"),
+    actionButton("measure", "Measure Distance")
+  ),
   
-  textOutput("explanation5")  
+  # Leaflet map and info box
+  mainPanel(
+    leafletOutput("map"),
+    verbatimTextOutput("info")
+  )
 )
 
-# Define the server
-server <- function(input, output) {
-  #Render the first chart
-  output$chart1 <- renderPlot({
-  hourly<-schema_table%>%
-    group_by(Hour)%>%
-    summarise(trips = n())%>%
-    pivot_longer(cols = trips, names_to = "hourly_tips", values_to = "trip_count")
+# Define server
+server <- function(input, output, session) {
   
-  ggplot(hourly, aes(x = Hour, y = trip_count)) +
-    geom_bar(stat = "identity", color = "black", fill = "dark green") +
-    labs(title = "Trips on each hour",
-         x = "Hour of uber order",
-         y = "Trip Count")
+  # Initialize leaflet map with default view
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = -73.0060, lat = 42.7137, zoom = 13)
   })
   
-  #Render the second chart
-  output$chart2 <- renderPlot({
-  daily<-for_month%>%
-    group_by(Day)%>%
-    summarise(trips = n())
+  # Add markers with pop-up info based on data frame
+  data <- data.frame(
+    name = c("Reyes Holdings", "blackrock"),
+    lat = c(42.6892, 42.7484),
+    lng = c(-75.0445, -74.9857),
+    info = c("The Statue of Liberty is a colossal neoclassical sculpture on Liberty Island in New York Harbor within New York City.", "The Empire State Building is a 102-story Art Deco skyscraper in Midtown Manhattan, New York City.")
+  )
   
-  ggplot(daily, aes(x = Day, y = trips)) +
-    geom_bar(stat = "identity", color = "black", fill = "dark grey") +
-    labs(title = "Trips on each day",
-         x = "day of uber order",
-         y = "Trip Count")
+  # Create reactive values for markers and search results
+  markers <- reactiveValues(data = data)
+  searchResults <- reactiveValues(data = NULL)
+  
+  # Add markers to map
+  observe({
+    leafletProxy("map", data = markers$data) %>%
+      clearMarkers() %>%
+      addMarkers(lng = ~lng, lat = ~lat, popup = ~name)
   })
   
-  # Render the third chart
-  output$chart3 <- renderPlot({
-    for_month %>%
-      group_by(Day,month) %>%
-      summarise(trips = n()) %>%
-      arrange(match(Day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
-              match(month, month.name)) %>%
-      ggplot(aes(x = month, y = trips, fill = Day)) +
-      geom_bar(stat = "identity", position = "dodge") +
-      labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
-      theme_bw()
+  # Update markers based on search results
+  observe({
+    if (!is.null(searchResults$data)) {
+      leafletProxy("map", data = searchResults$data) %>%
+        clearMarkers() %>%
+        addMarkers(lng = ~lng, lat = ~lat, popup = ~name)
+    }
   })
-  
-  # Render the fourth chart
-  output$chart4 <- renderPlot({
-  for_month %>%
-    group_by(Base, month) %>%
-    summarise(trips = n()) %>%
-    ggplot(aes(x = Base, y = trips, fill = month)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(x = "Base", y = "Number of Trips", fill = "Month", title = "Number of Uber Trips by Base and Month") +
-    theme_bw()
-  })
-  #Render the fifth chart
-  output$chart5 <- renderPlot({
-    night_owl<-filter(date_schema, Time > 23)
-    night_count<-night_owl%>%
-      group_by(Month) %>%
-      summarize(Trip_Count = n())
-    
-   colors <- c("blue", "green", "red", "purple", "pink", "yellow")
-    
-    # Plot a bar chart of trip counts for each month
-   ggplot(night_count, aes(x = Month, y = Trip_Count, fill = Month)) +
-      geom_bar(stat = "identity", color = "black") +
-     scale_fill_manual(values = colors) +
-      labs(title = "Trips at midnight by Month",
-          x = "Month",
-           y = "Trip Count")
-    
-  }) 
-  output$explanation1 <- renderText({
-    "This chart shows the trip count on each hour. '00' represents '12AM', and after that it goes upto '23', which represents '11 PM'.
-    As we can see from the chart, the most uber calls was at about '17' which is at '5 pm.' this makes sense because this is the usual hour were people go out of work and call uber. the least number of orders according to the chart is at '02' 
-    which means '2 AM'."
-  })
-  
-  output$explanation2 <- renderText({
-    "from our uber trips data, we also wanted to know which day of the week had the most uber orders. to do this, i split the months into days
-    and grouped each days. after that i counted each days travel over the 6 months given. as seen on the chart, Thursday had the most uber calls, while sunday had the least."
-  })
-  
-  output$explanation3 <- renderText({
-    "As the data represents, there are a lot of uber trips in each day of the month. And to know this, we counted each trips in a days travel in each month. This chart shows the number of Uber rides that took place by day of the week and month. 
-    Each bar represents a day of the week, and the bars are grouped by month. As shown in the chart, Tuesday of september is the busiest day while sunday of april is the least busy day"
-    
-  })
-  
-  output$explanation4 <- renderText({
-    "This chart represents the number of uber rides compared by its base and month.Each bar represents a base, and the bars are grouped by month. As we can understand from the graph, Base 'B02617' conducted the most trips especially on September.
-    Base 'B02764' conducted the lowest, which occured on both June and july"
-  })
-  
-  output$explanation5 <- renderText({
-    "I filtered out the time to midnight and checked how many uber calls there were at midnight. 
-    this chart represents which month had the most and least uber calls at midnight. September has the most calls on midnight, and April had the least "
-  })
-  
- 
 }
-
-# Run the app
-shinyApp(ui, server)
+shinyApp(ui = ui, server = server)
 ```
 
 
