@@ -1,0 +1,99 @@
+```r
+ui <- fluidPage(
+  
+  # Add title to the app
+  titlePanel("Uber Rides Analysis shown by heat map"),
+  
+    #Display the first chart
+    plotOutput("chart1"),
+    
+    textOutput("explanation1"),
+    
+    #Display the second chart
+    plotOutput("chart2"),
+    
+    textOutput("explanation2"),
+    
+    # Display the third chart
+    plotOutput("chart3"),
+    
+    textOutput("explanation3"),
+    
+    # Display the fourth chart
+    plotOutput("chart4"),
+    
+    textOutput("explanation4")
+    
+    
+  )
+  
+  # Define the server
+  server <- function(input, output) {
+    #Render the first chart
+    output$chart1 <- renderPlot({
+      ggplot(hour_and_day, aes(x = Hour, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "blue") +
+        labs(x = "Hour of Day", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Hour and Day of Week") +
+        theme_minimal()
+    })
+    
+    #Render the second chart
+    output$chart2 <- renderPlot({
+      ggplot(month_and_day, aes(x = month, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "green") +
+        labs(x = "Month", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Base and Day of Week") +
+        theme_minimal()
+    })
+    
+    # Render the third chart
+    output$chart3 <- renderPlot({
+      ggplot(month_and_week, aes(x = month, y = week, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "steelblue") +
+        labs(x = "Month", y = "Week of Year", fill = "Number of Rides") +
+        ggtitle("month and week of the year") +
+        theme_minimal()
+    })
+    
+    # Render the fourth chart
+    output$chart4 <- renderPlot({
+      ggplot(base_and_day, aes(x = Base, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "red") +
+        labs(x = "Uber Base", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Base and Day of Week") +
+        theme_minimal()
+    })
+    
+    
+    output$explanation1 <- renderText({
+      "This heat map resembles the different hours of each day of the week where uber rides are frequently called. the darker the color is, 
+      the more uber rides that are called."
+    })
+    
+    output$explanation2 <- renderText({
+      "this heat map shows on which days of the month most rides were called. again, the darker the color, the more rides called,
+      we can also see that April, relatively had wednesday as the most days called, august had saturday and sunday,
+      July, had wednesday and thurdsay, Jun had thursday, May had thursay, and september had friday, saturday, thursday and tuesday."
+    })
+    
+    output$explanation3 <- renderText({
+      "As the data represents, there are a lot of uber trips in the first 20 week of the year in April. next 10 week is dominated 
+      by may, the next 15 by Jun, then by July, then by August, then the rest was dominated by september."
+      
+    })
+    
+    output$explanation4 <- renderText({
+      "from the chart above, we can see that base 'B02512' and base 'B02764' had very few rides. and amongst the Base who had a lot of rides, they usually gave rides on wednesdays, thursays, and fridays."
+    })
+    
+    
+  }    
+    
+  # Run the app
+shinyApp(ui, server)
+```
