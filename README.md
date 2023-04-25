@@ -130,6 +130,7 @@ server <- function(input, output, session) {
 }
 shinyApp(ui = ui, server = server)
 ```
+![Screenshot 2023-04-25 163052](https://user-images.githubusercontent.com/118494139/234409108-58c1b496-d3c8-47e9-a07d-dbba36e54eb9.png)
 
 
 
