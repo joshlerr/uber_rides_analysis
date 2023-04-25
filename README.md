@@ -130,7 +130,40 @@ server <- function(input, output, session) {
 }
 shinyApp(ui = ui, server = server)
 ```
-![Screenshot 2023-04-25 163052](https://user-images.githubusercontent.com/118494139/234409108-58c1b496-d3c8-47e9-a07d-dbba36e54eb9.png)
+![Screenshot 2023-04-25 163052](https://user-images.githubusercontent.com/118494139/234409108-58c1b496-d3c8-47e9-a07d-dbba36e54eb9.png)  
+
+# Prediction Ride model using decision Tree  
+for decision making prediction models, i used libnraries that i have never used before. these two libraries are:  
+```r
+library(rpart)
+library(rpart.plot)
+```
+After loading these libraries, i did a cbind to the data frame and encoded categorical variables  
+```r
+modeling <- cbind(modeling, model.matrix(~Base, data = modeling)[,-1])
+```  
+the next step was splitting the data into trainig sets, reducing number of column for reasons of memory and visibility, and building the model  
+```r
+train <- sample(nrow(modeling), 0.7 * nrow(modeling))
+train_data <- modeling[train,]
+test_data <- modeling[-train,]
+train_data_subset <- train_data[1:30, ]
+test_data_subset<-test_data[1:30, ]
+dim(train_data_subset)
+tree_model <- rpart(Date ~ Lon + Lat + Time + Base, data = train_data_subset, method = "class")
+```  
+the Last step is visualizing the decision tree  
+```r
+rpart.plot(tree_model, box.palette = "Greens")
+```  
+![Rplot](https://user-images.githubusercontent.com/118494139/234410826-1fcc167a-b41e-4903-9ab3-6848cd79f59b.png)
+
+
+
+
+
+
+
 
 
 
