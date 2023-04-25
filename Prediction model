@@ -1,0 +1,16 @@
+```r  
+bind_table<-rbind(ap_14,aug_14,jul_14,jun_14,may_14,sep_14)
+date_schema<- separate(bind_table, col = Date.Time, into = c("Date", "Time"), sep = " ")
+
+modeling<-date_schema
+modeling <- cbind(modeling, model.matrix(~Base, data = modeling)[,-1])
+set.seed(123)
+train <- sample(nrow(modeling), 0.7 * nrow(modeling))
+train_data <- modeling[train,]
+test_data <- modeling[-train,]
+train_data_subset <- train_data[1:30, ]
+test_data_subset<-test_data[1:30, ]
+dim(train_data_subset)
+tree_model <- rpart(Date ~ Lon + Lat + Time + Base, data = train_data_subset, method = "class")
+rpart.plot(tree_model, box.palette = "Greens")  
+```
