@@ -1,0 +1,71 @@
+```r  
+# Define UI
+ui <- fluidPage(
+  
+  # Use shinyjs to reset map
+  useShinyjs(),
+  extendShinyjs(text = "shinyjs.resetMap = function() { map.setView([40.7128, -74.0060], 13); }", functions = list(
+    resetMap = JS("function() { map.setView([40.7128, -74.0060], 13); }")
+  )),
+  
+  
+  # Search input and search button
+  sidebarPanel(
+    textInput("search", "Search Address:"),
+    actionButton("go", "Go")
+  ),
+  
+  # Reset map button and measure button
+  tags$div(
+    id = "buttons",
+    actionButton("reset", "Reset Map"),
+    actionButton("measure", "Measure Distance")
+  ),
+  
+  # Leaflet map and info box
+  mainPanel(
+    leafletOutput("map"),
+    verbatimTextOutput("info")
+  )
+)
+
+# Define server
+server <- function(input, output, session) {
+  
+  # Initialize leaflet map with default view
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      setView(lng = -73.0060, lat = 42.7137, zoom = 13)
+  })
+  
+  # Add markers with pop-up info based on data frame
+  data <- data.frame(
+    name = c("Reyes Holdings", "blackrock"),
+    lat = c(42.6892, 42.7484),
+    lng = c(-75.0445, -74.9857),
+    info = c("The Statue of Liberty is a colossal neoclassical sculpture on Liberty Island in New York Harbor within New York City.", "The Empire State Building is a 102-story Art Deco skyscraper in Midtown Manhattan, New York City.")
+  )
+  
+  # Create reactive values for markers and search results
+  markers <- reactiveValues(data = data)
+  searchResults <- reactiveValues(data = NULL)
+  
+  # Add markers to map
+  observe({
+    leafletProxy("map", data = markers$data) %>%
+      clearMarkers() %>%
+      addMarkers(lng = ~lng, lat = ~lat, popup = ~name)
+  })
+  
+  # Update markers based on search results
+  observe({
+    if (!is.null(searchResults$data)) {
+      leafletProxy("map", data = searchResults$data) %>%
+        clearMarkers() %>%
+        addMarkers(lng = ~lng, lat = ~lat, popup = ~name)
+    }
+  })
+}
+shinyApp(ui = ui, server = server)  
+```
