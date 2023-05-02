@@ -44,7 +44,7 @@ server <- function(input, output, session) {
     name = c("Reyes Holdings", "blackrock"),
     lat = c(42.6892, 42.7484),
     lng = c(-75.0445, -74.9857),
-    info = c("The Statue of Liberty is a colossal neoclassical sculpture on Liberty Island in New York Harbor within New York City.", "The Empire State Building is a 102-story Art Deco skyscraper in Midtown Manhattan, New York City.")
+    info = c("Reyes holdings is one of the biggest distributers in the United States. ")
   )
   
   # Create reactive values for markers and search results
