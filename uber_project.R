@@ -10,7 +10,8 @@ library(tidytext)
 library(textdata)
 library(dplyr)
 rm(list=ls())
-setwd("~/uber data")
+
+setwd("C:/uber work")
 
 ap_14<-read.csv("uber-raw-data-apr14.csv")
 aug_14<-read.csv("uber-raw-data-aug14.csv")
@@ -25,15 +26,11 @@ bind_table<-rbind(ap_14,aug_14,jul_14,jun_14,may_14,sep_14)
 
 date_schema<- separate(bind_table, col = Date.Time, into = c("Date", "Time"), sep = " ")
 
-leaf_let<-date_schema
-
 schema_table<- date_schema
 
 schema_table$Time<- format(as.POSIXct(schema_table$Time, format = "%H:%M:%S"), format = "%H:%M")
 schema_table$Hour<-format(as.POSIXct(schema_table$Time, format = "%H:%M"), format = "%H")
 schema_table$month<-format(as.Date(schema_table$Date, "%m/%d/%Y"),"%b")
-
-
 
 #number of trips per
 schema<-schema_table%>%
@@ -46,11 +43,14 @@ hourly<-schema_table%>%
   summarise(trips = n())%>%
   pivot_longer(cols = trips, names_to = "hourly_tips", values_to = "trip_count")
 
-ggplot(hourly, aes(x = Hour, y = trip_count)) +
-  geom_bar(stat = "identity", color = "black", fill = "dark green") +
-  labs(title = "Trips on each hour",
-       x = "Hour of uber order",
-       y = "Trip Count")
+write.csv(hourly,"hourly", row.names = FALSE)
+#ggplot(hourly, aes(x = Hour, y = trip_count)) +
+ # geom_bar(stat = "identity", color = "black", fill = "dark green") +
+ # labs(title = "Trips on each hour",
+   #    x = "Hour of uber order",
+    #   y = "Trip Count"
+
+
 
 
 for_month<-schema_table
@@ -59,35 +59,43 @@ for_month$Day <- weekdays(for_month$Date)
 daily<-for_month%>%
   group_by(Day)%>%
   summarise(trips = n())
+write.csv(daily,"daily", row.names = FALSE)
+#ggplot(daily, aes(x = Day, y = trips)) +
+#  geom_bar(stat = "identity", color = "black", fill = "dark grey") +
+#  labs(title = "Trips on each day",
+#       x = "day of uber order",
+#       y = "Trip Count")
 
-ggplot(daily, aes(x = Day, y = trips)) +
-  geom_bar(stat = "identity", color = "black", fill = "dark grey") +
-  labs(title = "Trips on each day",
-       x = "day of uber order",
-       y = "Trip Count")
+#write.csv(for_month,"for_month", row.names = FALSE)
 
-for_month %>%
+
+lela<-for_month %>%
   group_by(Day,month) %>%
   summarise(trips = n()) %>%
   arrange(match(Day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
-          match(month, month.name)) %>%
-  ggplot(aes(x = month, y = trips, fill = Day)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
-  theme_bw()
+          match(month, month.name))
 
-for_month %>%
+write.csv(lela,"lela", row.names = FALSE)
+
+ggplot(lela, aes(x = month, y = trips, fill = Day)) +
+geom_bar(stat = "identity", position = "dodge") +
+labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
+theme_bw()
+
+picture<-for_month %>%
   group_by(Base, month) %>%
-  summarise(trips = n()) %>%
-  ggplot(aes(x = Base, y = trips, fill = month)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(x = "Base", y = "Number of Trips", fill = "Month", title = "Number of Uber Trips by Base and Month") +
-  theme_bw()
+  summarise(trips = n()) 
+write.csv(picture,"picture", row.names = FALSE)
 
+ggplot(picture, aes(x = Base, y = trips, fill = month)) +
+geom_bar(stat = "identity", position = "dodge") +
+labs(x = "Base", y = "Number of Trips", fill = "Month", title = "Number of Uber Trips by Base and Month") +
+theme_bw()
 
 
 
 date_schema$Date <- as.Date(date_schema$Date, format = "%m/%d/%Y")
+
 date_schema$Time <- as.POSIXct(date_schema$Time, format = "%H:%M:%S")
 
 # Extract hour and month from Date and Time columns
@@ -108,7 +116,7 @@ less_than_1_hour <- filter(date_schema, Time < 1)
 df_trip_count <- less_than_1_hour %>%
   group_by(Month) %>%
   summarize(Trip_Count = n())
-
+write.csv(df_trip_count,"df_trip_count", row.names = FALSE)
 ggplot(df_trip_count, aes(x = Month, y = Trip_Count)) +
   geom_bar(stat = "identity", color = "black", fill = "red") +
   labs(title = "Trips early in the morning by each month Month",
@@ -121,14 +129,15 @@ night_count<-night_owl%>%
   group_by(Month) %>%
   summarize(Trip_Count = n())
 
+write.csv(night_count,"night_count", row.names = FALSE)
 colors <- c("blue", "green", "red", "purple", "pink", "yellow")
 
-# Plot a bar chart of trip counts for each month
+ #Plot a bar chart of trip counts for each month
 ggplot(night_count, aes(x = Month, y = Trip_Count, fill = Month)) +
-  geom_bar(stat = "identity", color = "black") +
+ geom_bar(stat = "identity", color = "black") +
   scale_fill_manual(values = colors) +
   labs(title = "Trips at midnight by Month",
-       x = "Month",
+      x = "Month",
        y = "Trip Count")
 
 
@@ -136,7 +145,7 @@ ggplot(night_count, aes(x = Month, y = Trip_Count, fill = Month)) +
 
 # Define the UI
 ui <- fluidPage(
-  titlePanel("Uber Rides Analysis shown bar charts"),
+  titlePanel("Uber Rides Analysis shown by bar charts"),
   #Display the first chart
   plotOutput("chart1"),
   
@@ -169,39 +178,27 @@ ui <- fluidPage(
 server <- function(input, output) {
   #Render the first chart
   output$chart1 <- renderPlot({
-    hourly<-schema_table%>%
-      group_by(Hour)%>%
-      summarise(trips = n())%>%
-      pivot_longer(cols = trips, names_to = "hourly_tips", values_to = "trip_count")
-    
-    ggplot(hourly, aes(x = Hour, y = trip_count)) +
-      geom_bar(stat = "identity", color = "black", fill = "dark green") +
-      labs(title = "Trips on each hour",
-           x = "Hour of uber order",
-           y = "Trip Count")
+  
+  ggplot(hourly, aes(x = Hour, y = trip_count)) +
+    geom_bar(stat = "identity", color = "black", fill = "dark green") +
+    labs(title = "Trips on each hour",
+         x = "Hour of uber order",
+         y = "Trip Count")
   })
   
   #Render the second chart
   output$chart2 <- renderPlot({
-    daily<-for_month%>%
-      group_by(Day)%>%
-      summarise(trips = n())
-    
-    ggplot(daily, aes(x = Day, y = trips)) +
-      geom_bar(stat = "identity", color = "black", fill = "dark grey") +
-      labs(title = "Trips on each day",
-           x = "day of uber order",
-           y = "Trip Count")
+  
+  ggplot(daily, aes(x = Day, y = trips)) +
+    geom_bar(stat = "identity", color = "black", fill = "dark grey") +
+    labs(title = "Trips on each day",
+         x = "day of uber order",
+         y = "Trip Count")
   })
   
   # Render the third chart
   output$chart3 <- renderPlot({
-    for_month %>%
-      group_by(Day,month) %>%
-      summarise(trips = n()) %>%
-      arrange(match(Day, c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
-              match(month, month.name)) %>%
-      ggplot(aes(x = month, y = trips, fill = Day)) +
+    ggplot(lela, aes(x = month, y = trips, fill = Day)) +
       geom_bar(stat = "identity", position = "dodge") +
       labs(x = "Month", y = "Number of Trips", fill = "Day of the Week", title = "Number of Uber Trips by Day and Month") +
       theme_bw()
@@ -209,10 +206,7 @@ server <- function(input, output) {
   
   # Render the fourth chart
   output$chart4 <- renderPlot({
-    for_month %>%
-      group_by(Base, month) %>%
-      summarise(trips = n()) %>%
-      ggplot(aes(x = Base, y = trips, fill = month)) +
+    ggplot(picture, aes(x = Base, y = trips, fill = month)) +
       geom_bar(stat = "identity", position = "dodge") +
       labs(x = "Base", y = "Number of Trips", fill = "Month", title = "Number of Uber Trips by Base and Month") +
       theme_bw()
@@ -221,14 +215,9 @@ server <- function(input, output) {
   
   #Render the fifth chart
   output$chart5 <- renderPlot({
-    night_owl<-filter(date_schema, Time > 23)
-    night_count<-night_owl%>%
-      group_by(Month) %>%
-      summarize(Trip_Count = n())
-    
     colors <- c("blue", "green", "red", "purple", "pink", "yellow")
     
-    # Plot a bar chart of trip counts for each month
+    #Plot a bar chart of trip counts for each month
     ggplot(night_count, aes(x = Month, y = Trip_Count, fill = Month)) +
       geom_bar(stat = "identity", color = "black") +
       scale_fill_manual(values = colors) +
@@ -241,7 +230,7 @@ server <- function(input, output) {
   
   output$explanation1 <- renderText({
     "This chart shows the trip count on each hour. '00' represents '12AM', and after that it goes upto '23', which represents '11 PM'.
-    As we can see from the chart, the most uber calls was at about '17' which is at '5 pm.' this makes sense because this is the usual hour were people go out of work and call uber. the least number of orders according to the chart is at '02'
+    As we can see from the chart, the most uber calls was at about '17' which is at '5 pm.' this makes sense because this is the usual hour were people go out of work and call uber. the least number of orders according to the chart is at '02' 
     which means '2 AM'."
   })
   
@@ -251,7 +240,7 @@ server <- function(input, output) {
   })
   
   output$explanation3 <- renderText({
-    "As the data represents, there are a lot of uber trips in each day of the month. And to know this, we counted each trips in a days travel in each month. This chart shows the number of Uber rides that took place by day of the week and month.
+    "As the data represents, there are a lot of uber trips in each day of the month. And to know this, we counted each trips in a days travel in each month. This chart shows the number of Uber rides that took place by day of the week and month. 
     Each bar represents a day of the week, and the bars are grouped by month. As shown in the chart, Tuesday of september is the busiest day while sunday of april is the least busy day"
     
   })
@@ -262,11 +251,11 @@ server <- function(input, output) {
   })
   
   output$explanation5 <- renderText({
-    "I filtered out the time to midnight and checked how many uber calls there were at midnight.
+    "I filtered out the time to midnight and checked how many uber calls there were at midnight. 
     this chart represents which month had the most and least uber calls at midnight. September has the most calls on midnight, and April had the least "
   })
   
-  
+ 
 }
 
 # Run the app
@@ -322,108 +311,108 @@ ggplot(base_and_day, aes(x = Base, y = Day, fill = count)) +
 
 
 
-
+  
 ui <- fluidPage(
   
   # Add title to the app
   titlePanel("Uber Rides Analysis shown by heat map"),
   
-  #Display the first chart
-  plotOutput("chart1"),
+    #Display the first chart
+    plotOutput("chart1"),
+    
+    textOutput("explanation1"),
+    
+    #Display the second chart
+    plotOutput("chart2"),
+    
+    textOutput("explanation2"),
+    
+    # Display the third chart
+    plotOutput("chart3"),
+    
+    textOutput("explanation3"),
+    
+    # Display the fourth chart
+    plotOutput("chart4"),
+    
+    textOutput("explanation4")
+    
+    
+  )
   
-  textOutput("explanation1"),
-  
-  #Display the second chart
-  plotOutput("chart2"),
-  
-  textOutput("explanation2"),
-  
-  # Display the third chart
-  plotOutput("chart3"),
-  
-  textOutput("explanation3"),
-  
-  # Display the fourth chart
-  plotOutput("chart4"),
-  
-  textOutput("explanation4")
-  
-  
-)
-
-# Define the server
-server <- function(input, output) {
-  #Render the first chart
-  output$chart1 <- renderPlot({
-    ggplot(hour_and_day, aes(x = Hour, y = Day, fill = count)) +
-      geom_tile() +
-      scale_fill_gradient(low = "white", high = "blue") +
-      labs(x = "Hour of Day", y = "Day of Week", fill = "Number of Rides") +
-      ggtitle("Uber Rides by Hour and Day of Week") +
-      theme_minimal()
-  })
-  
-  #Render the second chart
-  output$chart2 <- renderPlot({
-    ggplot(month_and_day, aes(x = month, y = Day, fill = count)) +
-      geom_tile() +
-      scale_fill_gradient(low = "white", high = "green") +
-      labs(x = "Month", y = "Day of Week", fill = "Number of Rides") +
-      ggtitle("Uber Rides by Base and Day of Week") +
-      theme_minimal()
-  })
-  
-  # Render the third chart
-  output$chart3 <- renderPlot({
-    ggplot(month_and_week, aes(x = month, y = week, fill = count)) +
-      geom_tile() +
-      scale_fill_gradient(low = "white", high = "steelblue") +
-      labs(x = "Month", y = "Week of Year", fill = "Number of Rides") +
-      ggtitle("month and week of the year") +
-      theme_minimal()
-  })
-  
-  # Render the fourth chart
-  output$chart4 <- renderPlot({
-    ggplot(base_and_day, aes(x = Base, y = Day, fill = count)) +
-      geom_tile() +
-      scale_fill_gradient(low = "white", high = "red") +
-      labs(x = "Uber Base", y = "Day of Week", fill = "Number of Rides") +
-      ggtitle("Uber Rides by Base and Day of Week") +
-      theme_minimal()
-  })
-  
-  
-  output$explanation1 <- renderText({
-    "This heat map resembles the different hours of each day of the week where uber rides are frequently called. the darker the color is,
+  # Define the server
+  server <- function(input, output) {
+    #Render the first chart
+    output$chart1 <- renderPlot({
+      ggplot(hour_and_day, aes(x = Hour, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "blue") +
+        labs(x = "Hour of Day", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Hour and Day of Week") +
+        theme_minimal()
+    })
+    
+    #Render the second chart
+    output$chart2 <- renderPlot({
+      ggplot(month_and_day, aes(x = month, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "green") +
+        labs(x = "Month", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Base and Day of Week") +
+        theme_minimal()
+    })
+    
+    # Render the third chart
+    output$chart3 <- renderPlot({
+      ggplot(month_and_week, aes(x = month, y = week, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "steelblue") +
+        labs(x = "Month", y = "Week of Year", fill = "Number of Rides") +
+        ggtitle("month and week of the year") +
+        theme_minimal()
+    })
+    
+    # Render the fourth chart
+    output$chart4 <- renderPlot({
+      ggplot(base_and_day, aes(x = Base, y = Day, fill = count)) +
+        geom_tile() +
+        scale_fill_gradient(low = "white", high = "red") +
+        labs(x = "Uber Base", y = "Day of Week", fill = "Number of Rides") +
+        ggtitle("Uber Rides by Base and Day of Week") +
+        theme_minimal()
+    })
+    
+    
+    output$explanation1 <- renderText({
+      "This heat map resembles the different hours of each day of the week where uber rides are frequently called. the darker the color is, 
       the more uber rides that are called."
-  })
-  
-  output$explanation2 <- renderText({
-    "this heat map shows on which days of the month most rides were called. again, the darker the color, the more rides called,
+    })
+    
+    output$explanation2 <- renderText({
+      "this heat map shows on which days of the month most rides were called. again, the darker the color, the more rides called,
       we can also see that April, relatively had wednesday as the most days called, august had saturday and sunday,
       July, had wednesday and thurdsay, Jun had thursday, May had thursay, and september had friday, saturday, thursday and tuesday."
-  })
-  
-  output$explanation3 <- renderText({
-    "As the data represents, there are a lot of uber trips in the first 20 week of the year in April. next 10 week is dominated
-      by may, the next 15 by Jun, then by July, then by August, then the rest was dominated by september."
+    })
     
-  })
-  
-  output$explanation4 <- renderText({
-    "from the chart above, we can see that base 'B02512' and base 'B02764' had very few rides. and amongst the Base who had a lot of rides, they usually gave rides on wednesdays, thursays, and fridays."
-  })
-  
-  
-}    
-
-# Run the app
+    output$explanation3 <- renderText({
+      "As the data represents, there are a lot of uber trips in the first 20 week of the year in April. next 10 week is dominated 
+      by may, the next 15 by Jun, then by July, then by August, then the rest was dominated by september."
+      
+    })
+    
+    output$explanation4 <- renderText({
+      "from the chart above, we can see that base 'B02512' and base 'B02764' had very few rides. and amongst the Base who had a lot of rides, they usually gave rides on wednesdays, thursays, and fridays."
+    })
+    
+    
+  }    
+    
+  # Run the app
 shinyApp(ui, server)    
+    
 
-
+leaf_let<-date_schema
 leaf_let$datetime <- as.POSIXct(paste(leaf_let$Date, leaf_let$Time), format = "%m/%d/%Y %H:%M:%S")
-
 
 # Define UI
 ui <- fluidPage(
@@ -470,7 +459,7 @@ server <- function(input, output, session) {
     name = c("Reyes Holdings", "blackrock"),
     lat = c(42.6892, 42.7484),
     lng = c(-75.0445, -74.9857),
-    info = c("Reyes holdings is one of the biggest comopany in Chicago")
+    info = c("The Statue of Liberty is a colossal neoclassical sculpture on Liberty Island in New York Harbor within New York City.", "The Empire State Building is a 102-story Art Deco skyscraper in Midtown Manhattan, New York City.")
   )
   
   # Create reactive values for markers and search results
@@ -496,7 +485,7 @@ server <- function(input, output, session) {
 shinyApp(ui = ui, server = server)
 
 
-#prediction model
+
 modeling<-date_schema
 modeling <- cbind(modeling, model.matrix(~Base, data = modeling)[,-1])
 set.seed(123)
@@ -507,4 +496,4 @@ train_data_subset <- train_data[1:30, ]
 test_data_subset<-test_data[1:30, ]
 dim(train_data_subset)
 tree_model <- rpart(Date ~ Lon + Lat + Time + Base, data = train_data_subset, method = "class")
-rpart.plot(tree_model, box.palette = "Greens")  
+rpart.plot(tree_model, box.palette = "Greens")
